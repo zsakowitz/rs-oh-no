@@ -1,6 +1,8 @@
 use crate::{
     bool::{Bool, False, True},
     memory::{Memory, MemoryWith},
+    tape::TapeTrait,
+    Instruction,
 };
 use std::marker::PhantomData;
 
@@ -20,9 +22,11 @@ pub trait Uint {
     type IsGTE<Rhs: Uint>: Bool;
     type IsLT<Rhs: Uint>: Bool;
     type IsLTE<Rhs: Uint>: Bool;
-    type FlipIn<A: Bool, B: Memory>: Memory;
-    type GetIn<A: Bool, B: Memory>: Bool;
-    type SetIn<A: Bool, B: Memory, T: Bool>: Memory;
+    type DecIn<A: Uint, B: Memory>: Memory;
+    type IncIn<A: Uint, B: Memory>: Memory;
+    type GetIn<A: Uint, B: Memory>: Uint;
+    type SetIn<A: Uint, B: Memory, T: Uint>: Memory;
+    type ApplyWhileNonzero<T: TapeTrait, I: Instruction>: TapeTrait;
 
     const VALUE: usize;
 }
@@ -40,9 +44,11 @@ impl Uint for UintZero {
     type IsGTE<Rhs: Uint> = Rhs::IsZero;
     type IsLT<Rhs: Uint> = <Rhs::IsZero as Bool>::Not;
     type IsLTE<Rhs: Uint> = True;
-    type FlipIn<A: Bool, B: Memory> = MemoryWith<A::Not, B>;
-    type GetIn<A: Bool, B: Memory> = A;
-    type SetIn<A: Bool, B: Memory, T: Bool> = MemoryWith<T, B>;
+    type DecIn<A: Uint, B: Memory> = MemoryWith<A::Prev, B>;
+    type IncIn<A: Uint, B: Memory> = MemoryWith<A::Next, B>;
+    type GetIn<A: Uint, B: Memory> = A;
+    type SetIn<A: Uint, B: Memory, T: Uint> = MemoryWith<T, B>;
+    type ApplyWhileNonzero<T: TapeTrait, I: Instruction> = T;
 
     const VALUE: usize = 0;
 }
@@ -61,9 +67,12 @@ impl<T: Uint> Uint for UintNext<T> {
     type IsGTE<Rhs: Uint> = <Rhs::IsZero as Bool>::Choose<True, T::IsGTE<Rhs::Prev>>;
     type IsLT<Rhs: Uint> = <Rhs::IsZero as Bool>::Choose<False, T::IsLT<Rhs::Prev>>;
     type IsLTE<Rhs: Uint> = <Rhs::IsZero as Bool>::Choose<False, T::IsLTE<Rhs::Prev>>;
-    type FlipIn<A: Bool, B: Memory> = MemoryWith<A, B::Flip<T>>;
-    type GetIn<A: Bool, B: Memory> = B::Get<T>;
-    type SetIn<A: Bool, B: Memory, U: Bool> = MemoryWith<A, B::Set<T, U>>;
+    type DecIn<A: Uint, B: Memory> = MemoryWith<A, B::Dec<T>>;
+    type IncIn<A: Uint, B: Memory> = MemoryWith<A, B::Inc<T>>;
+    type GetIn<A: Uint, B: Memory> = B::Get<T>;
+    type SetIn<A: Uint, B: Memory, U: Uint> = MemoryWith<A, B::Set<T, U>>;
+    type ApplyWhileNonzero<A: TapeTrait, I: Instruction> =
+        <I::Apply<A> as TapeTrait>::ApplyWhileNonzero<I>;
 
     const VALUE: usize = 1 + T::VALUE;
 }

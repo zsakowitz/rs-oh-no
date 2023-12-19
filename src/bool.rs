@@ -9,7 +9,7 @@ pub trait Bool {
     type Or<T: Bool>: Bool;
     type Choose<A: Bool, B: Bool>: Bool;
     type ChooseTape<A: TapeTrait, B: TapeTrait>: TapeTrait;
-    type ApplyWhileTrue<A: TapeTrait, I: Instruction>: TapeTrait;
+    type ApplyWhileNonzero<A: TapeTrait, I: Instruction>: TapeTrait;
 
     const VALUE: bool;
 }
@@ -20,8 +20,8 @@ impl Bool for True {
     type Or<T: Bool> = True;
     type Choose<A: Bool, B: Bool> = A;
     type ChooseTape<A: TapeTrait, B: TapeTrait> = A;
-    type ApplyWhileTrue<A: TapeTrait, I: Instruction> =
-        <I::Apply<A> as TapeTrait>::ApplyWhileTrue<I>;
+    type ApplyWhileNonzero<A: TapeTrait, I: Instruction> =
+        <I::Apply<A> as TapeTrait>::ApplyWhileNonzero<I>;
 
     const VALUE: bool = true;
 }
@@ -32,7 +32,7 @@ impl Bool for False {
     type Or<T: Bool> = T;
     type Choose<A: Bool, B: Bool> = B;
     type ChooseTape<A: TapeTrait, B: TapeTrait> = B;
-    type ApplyWhileTrue<A: TapeTrait, I: Instruction> = A;
+    type ApplyWhileNonzero<A: TapeTrait, I: Instruction> = A;
 
     const VALUE: bool = false;
 }
