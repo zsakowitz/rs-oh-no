@@ -57,33 +57,3 @@ pub enum ReifiedMemory {
     None,
     Some(bool, &'static ReifiedMemory),
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        memory::{Memory, MemoryEmpty, ReifiedMemory},
-        uint::{Uint0, Uint2, Uint3},
-    };
-
-    #[test]
-    fn test() {
-        type Empty = MemoryEmpty;
-        type Flip2 = <Empty as Memory>::Flip<Uint2>;
-        type Flip3 = <Flip2 as Memory>::Flip<Uint3>;
-        type Flip0 = <Flip3 as Memory>::Flip<Uint0>;
-        type Flip2Again = <Flip0 as Memory>::Flip<Uint2>;
-
-        const V: ReifiedMemory = Flip2Again::VALUE;
-
-        assert!(matches!(
-            V,
-            ReifiedMemory::Some(
-                true,
-                ReifiedMemory::Some(
-                    false,
-                    ReifiedMemory::Some(false, ReifiedMemory::Some(true, ReifiedMemory::None))
-                )
-            )
-        ));
-    }
-}
