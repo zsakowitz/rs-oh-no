@@ -24,15 +24,12 @@ pub mod tape;
 pub mod uint;
 
 fn main() {
+    // Write your program below. The example one outputs "hello world" as a byte sequence.
     type Program = program!(
-        > +++++++ // add 7 to cell #1
-        [ // while cell #1 is nonzero
-            < ++++ // add 4 to cell #0
-            > - // remove 1 from cell #1
-        ]
+        ++++++++[>++++[>++>+++>+++>+<<<<-]>+>+>->>+[<]<-]>>.>---.+++++++..+++.>>.<-.<.+++.------.--------.>>+.>++.
     );
 
     type Result = <Program as Instruction>::ApplyTo<BlankTape>;
 
-    println!("{:?}", Result::reify());
+    println!("{:?}", <Result as TapeTrait>::reify());
 }
