@@ -1,5 +1,3 @@
-#![recursion_limit = "8"]
-
 use crate::tape::{BlankTape, TapeTrait};
 use std::marker::PhantomData;
 
@@ -50,12 +48,9 @@ impl<I: Instruction> Instruction for Loop<I> {
 }
 
 fn main() {
-    type Step0 = BlankTape;
-    type Step1 = <Shr as Instruction>::Apply<Step0>;
-    type Step2 = <Flip as Instruction>::Apply<Step1>;
-    type Step3 = <Loop<Shl> as Instruction>::Apply<Step2>;
-
-    let x = Step3::reify();
+    type Program = Seq<Shr, Seq<Flip, Loop<Shl>>>;
+    type Result = <Program as Instruction>::Apply<BlankTape>;
+    let x = Result::reify();
 
     println!("{x:?}");
 }
